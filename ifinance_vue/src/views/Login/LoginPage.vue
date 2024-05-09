@@ -46,15 +46,11 @@ export default {
             password: this.password,
           }
         );
-        // Login successful - Update user data in store (assuming 'setUser' mutation)
-        // store.commit("setUser", response.data.user);
         this.setUserProfile(response.data.user);
         this.setAuthToken(response.data.token);
-
-        // Login successful - Redirect to desired page (replace with your actual URL)
         this.$router.push("/");
       } catch (error) {
-        this.errorMessage = error.response?.data?.error || "Login failed."; // Handle potential errors
+        this.errorMessage = error.response?.data?.error || "Login failed.";
       }
     },
     ...mapMutations(["setUserProfile", "setAuthToken"]),
@@ -63,8 +59,6 @@ export default {
 </script>
 
 <style scoped>
-/* Add your CSS styles here */
-
 .container {
   height: 565px;
   background-color: #1e212a;

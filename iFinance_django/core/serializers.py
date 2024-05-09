@@ -3,12 +3,13 @@ from core.models import test, UserProfile, Expense, Income, Budget
 from django.contrib.auth.models import User
 from django.db.models import Sum, F
 
+
 class ABCSerializer(serializers.ModelSerializer):
     class Meta:
         model = test
         fields = '__all__'
 
-# User Serializer
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -18,7 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user( validated_data["email"], validated_data["email"], validated_data["password"])
         validated_data["user"] = user
         return UserProfile.objects.create(**validated_data)
-        # return super().create(validated_data)
     
 
 class UserPublicDetailsSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class UserPublicDetailsSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ('user_object_id','id', 'first_name', 'last_name', 'bank_balance')
 
-    
+
 class ExpenseSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='get_category_display', read_only=True)
 
@@ -44,6 +44,10 @@ class ExpenseSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         validated_data["user"] = request.user
 
+        user_profile = UserProfile.objects.get(user=request.user)
+        user_profile.bank_balance -= validated_data['amount']
+        user_profile.save()
+
         # Deduct the expense amount from the budget amount
         budget_id = validated_data.get('budget')
         if budget_id:
@@ -52,8 +56,6 @@ class ExpenseSerializer(serializers.ModelSerializer):
             budget.save()
 
         return Expense.objects.create(**validated_data)
-
-    
 
 
 class IncomeSerializer(serializers.ModelSerializer):
@@ -102,5 +104,3 @@ class BudgetSerializer(serializers.ModelSerializer):
 
         return Budget.objects.create(**validated_data)
     
-    # git commit
-

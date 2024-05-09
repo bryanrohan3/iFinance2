@@ -33,8 +33,6 @@
       <p>{{ formatDate(budgetItem.start_date) }}</p>
       <p>{{ formatDate(budgetItem.end_date) }}</p>
       <p>$ {{ budgetItem.budget_amount }}</p>
-      <!-- You can calculate remaining budget here if needed -->
-      <!-- <p>$ {{ calculateRemainingBudget(budgetItem) }}</p> -->
       <p>$ {{ calculateRemainingBudget(budgetItem) }}</p>
     </div>
   </div>
@@ -95,7 +93,11 @@ export default {
       const userId = this.getUserProfile.user_object_id;
 
       axios
-        .get(`http://127.0.0.1:8000/api/budget/?user=${userId}`)
+        .get("http://127.0.0.1:8000/api/budget", {
+          params: {
+            user: userId,
+          },
+        })
         .then((response) => {
           console.log("User budgets:", response.data);
           this.budgets = response.data;

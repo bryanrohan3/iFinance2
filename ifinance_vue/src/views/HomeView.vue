@@ -2,32 +2,27 @@
   <div class="banner">
     <div class="home">
       <p v-if="getUserProfile" class="hi_user">
-        Welcome {{ getUserProfile.first_name }} 👋
+        Welcome {{ getUserProfile.first_name }}
       </p>
       <p v-else>Please log in to see your account name.</p>
     </div>
   </div>
 
-  <!-- display bank balance -->
-  <div class="bank_balance">
+  <div class="bank_balance" v-if="getUserProfile">
     <p class="balance_amount">$ {{ getUserProfile.bank_balance }}</p>
     <p class="balance_name">Balance</p>
   </div>
 
-  <!-- Iterate over transactions -->
-  <div v-if="transactions.length > 0">
+  <div v-if="transactions.length > 0 && getUserProfile">
     <h1 class="title">Recent Transactions</h1>
-    <!-- Group transactions by date -->
     <template
       v-for="(transactionGroup, index) in groupedTransactions"
       :key="index"
     >
-      <!-- Display the date -->
       <div class="date_trans">
         <span class="date_text">{{ transactionGroup.date }}</span>
       </div>
 
-      <!-- Display transactions for this date -->
       <template
         v-for="transaction in transactionGroup.transactions"
         :key="transaction.id"
@@ -55,8 +50,10 @@
     </template>
   </div>
 
-  <!-- Show message if no transactions -->
-  <div v-else>No transactions found.</div>
+  <div v-else>
+    <p v-if="!getUserProfile">Please log in to see your transactions.</p>
+    <p v-else>No transactions found.</p>
+  </div>
 </template>
 
 <script>
@@ -76,7 +73,6 @@ export default {
     }),
     // Group transactions by date
     groupedTransactions() {
-      // Group transactions by date
       const grouped = {};
       this.transactions.forEach((transaction) => {
         const date = this.formatDate(transaction.date);
@@ -85,14 +81,6 @@ export default {
         }
         grouped[date].push(transaction);
       });
-
-      // Sort transactions by date in descending order and then by date_time_created within each date group
-      for (const date in grouped) {
-        grouped[date].sort(
-          (a, b) =>
-            new Date(b.date_time_created) - new Date(a.date_time_created)
-        );
-      }
 
       // Convert grouped transactions into an array
       const groupedArray = Object.entries(grouped).map(
@@ -122,32 +110,39 @@ export default {
       // Fetch both income and expense transactions for the logged-in user
       axios
         .all([
-          axios.get(`http://127.0.0.1:8000/api/income/?user=${userId}`),
-          axios.get(`http://127.0.0.1:8000/api/expense/?user=${userId}`),
+          axios.get("http://127.0.0.1:8000/api/income", {
+            params: {
+              user: userId,
+            },
+          }),
+          axios.get("http://127.0.0.1:8000/api/expense", {
+            params: {
+              user: userId,
+            },
+          }),
         ])
         .then(
           axios.spread((incomeResponse, expenseResponse) => {
-            // Filter income transactions for the logged-in user
-            const filteredIncomeTransactions = incomeResponse.data
-              .filter((transaction) => transaction.user === userId)
-              .map((transaction) => ({
-                ...transaction,
-                type: "income",
-              }));
-
-            // Filter expense transactions for the logged-in user
-            const filteredExpenseTransactions = expenseResponse.data
-              .filter((transaction) => transaction.user === userId)
-              .map((transaction) => ({
-                ...transaction,
-                type: "expense",
-              }));
-
-            // Combine both income and expense transactions into one array
+            const incomeTransactions = incomeResponse.data.map(
+              (transaction) => ({ ...transaction, type: "income" })
+            );
+            const expenseTransactions = expenseResponse.data.map(
+              (transaction) => ({ ...transaction, type: "expense" })
+            );
+            // Combine and sort all transactions by both date and creation date
             this.transactions = [
-              ...filteredIncomeTransactions,
-              ...filteredExpenseTransactions,
-            ];
+              ...incomeTransactions,
+              ...expenseTransactions,
+            ].sort((a, b) => {
+              const dateComparison = new Date(b.date) - new Date(a.date);
+              if (dateComparison !== 0) {
+                return dateComparison;
+              } else {
+                return (
+                  new Date(b.date_time_created) - new Date(a.date_time_created)
+                );
+              }
+            });
           })
         )
         .catch((error) => {
@@ -157,14 +152,13 @@ export default {
 
     formatDate(date) {
       // Implement date formatting logic here
-      return new Date(date).toLocaleDateString(); // Example: using JavaScript's built-in toLocaleDateString method
+      return new Date(date).toLocaleDateString();
     },
   },
 };
 </script>
 
 <style scoped>
-/* Add your CSS styles here */
 .home {
   max-width: 80%;
   margin: 0 auto;

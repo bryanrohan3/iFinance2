@@ -61,11 +61,6 @@
     <section class="section">
       <router-view />
     </section>
-
-    <!-- Footer -->
-    <!-- <footer class="footer">
-      <p class="has-text-centered">Copyright (c) iFinance 2024</p>
-    </footer> -->
   </div>
 </template>
 

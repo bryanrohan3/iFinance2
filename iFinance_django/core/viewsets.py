@@ -26,6 +26,7 @@ class CustomAuthentication(ObtainAuthToken):
             'token': token.key,
         })
 
+
 class TestViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = test.objects.all() 
     serializer_class = ABCSerializer
@@ -36,6 +37,7 @@ class TestViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         return Response(
             {},
             status=status.HTTP_200_OK,)
+
 
 class UserViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = UserProfile.objects.all()
@@ -69,6 +71,7 @@ class UserViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         profile = UserProfile.objects.get(user=request.user)
         return Response(profile.bank_balance)
 
+
 class ExpenseViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -86,10 +89,37 @@ class ExpenseViewSet(
         user = request.user
         return queryset.filter(user=user)
 
-class IncomeViewSet(viewsets.ModelViewSet):
+
+class IncomeViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
     queryset = Income.objects.all()
     serializer_class = IncomeSerializer
 
-class BudgetViewSet(viewsets.ModelViewSet):
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        request = self.request
+        user = request.user
+        return queryset.filter(user=user)
+
+
+class BudgetViewSet(mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        request = self.request
+        user = request.user
+        return queryset.filter(user=user)

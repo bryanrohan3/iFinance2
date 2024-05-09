@@ -71,7 +71,6 @@ export default {
         return;
       }
 
-      // Check for empty bank balance
       if (!this.bankBalance) {
         this.bankBalanceError = true;
         this.errorMessage = "Please enter your bank balance.";
@@ -95,7 +94,6 @@ export default {
           bank_balance: this.bankBalance, // Add bank balance to data
         })
         .then((response) => {
-          // Handle successful signup (e.g., redirect to login page)
           this.$router.push("/");
         })
         .catch((error) => {
@@ -108,7 +106,6 @@ export default {
 </script>
 
 <style scoped>
-/* Add your CSS styles here */
 .signup {
   max-width: 400px;
   margin: 0 auto;

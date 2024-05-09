@@ -117,6 +117,9 @@ export default {
     ...mapGetters({
       getUserProfile: "getUserProfile",
     }),
+    isLoggedIn() {
+      return !!this.getUserProfile;
+    },
   },
   data() {
     return {
@@ -148,11 +151,15 @@ export default {
       this.showModal = false;
     },
     async fetchBudgets() {
-      const userId = this.$store.getters.getUserProfile.user_object_id;
+      const userId = this.getUserProfile.user_object_id;
+      console.log("User ID:", userId);
+
       try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/budget/?user=${userId}`
-        );
+        const response = await axios.get("http://127.0.0.1:8000/api/budget", {
+          params: {
+            user: userId,
+          },
+        });
         this.budgets = response.data;
       } catch (error) {
         console.error("Failed to fetch budgets:", error);
@@ -160,11 +167,18 @@ export default {
       }
     },
     async fetchBudgetsInRange(date) {
-      const userId = this.$store.getters.getUserProfile.user_object_id;
+      const userId = this.getUserProfile.user_object_id;
+      console.log("User ID:", userId);
+
       try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/budget/?user=${userId}&start_date__lte=${date}&end_date__gte=${date}`
-        );
+        const response = await axios.get("http://127.0.0.1:8000/api/budget", {
+          params: {
+            user: userId,
+            start_date__lte: date,
+            end_date__gte: date,
+          },
+        });
+
         this.budgets = response.data.filter(
           (budget) => budget.start_date <= date && budget.end_date >= date
         );
@@ -175,41 +189,21 @@ export default {
     },
 
     submitExpense() {
-      const userId = this.$store.getters.getUserProfile.user_object_id;
+      const userId = this.getUserProfile.user_object_id;
+      console.log("User ID:", userId);
 
       const expenseData = {
         category: this.expense.tag,
         amount: this.expense.cost,
         date: this.expense.date,
         budget: this.expense.budget,
+        user: userId,
       };
 
       axios
         .post("http://127.0.0.1:8000/api/expense/", expenseData)
         .then((response) => {
           console.log("Expense submitted:", response.data);
-          // Update budget amount on successful submission
-          const budgetIndex = this.budgets.findIndex(
-            (budget) => budget.id === this.expense.budget
-          );
-          if (budgetIndex !== -1) {
-            // Subtract expense amount from budget amount
-            this.budgets[budgetIndex].budget_amount -= this.expense.cost;
-            // Update budget amount in the backend
-            axios
-              .patch(
-                `http://127.0.0.1:8000/api/budget/${this.expense.budget}/`,
-                {
-                  budget_amount: this.budgets[budgetIndex].budget_amount,
-                }
-              )
-              .then((response) => {
-                console.log("Budget amount updated:", response.data);
-              })
-              .catch((error) => {
-                console.error("Failed to update budget amount:", error);
-              });
-          }
           this.closeModal();
         })
         .catch((error) => {
@@ -219,8 +213,7 @@ export default {
     },
 
     submitIncome() {
-      const userId = this.$store.getters.getUserProfile.user_object_id;
-      // ...
+      const userId = this.getUserProfile.user_object_id;
 
       const incomeData = {
         category: this.income.tag,
@@ -239,11 +232,6 @@ export default {
           this.errorMessage = "Failed to submit income";
           console.error(error);
         });
-    },
-  },
-  computed: {
-    isLoggedIn() {
-      return !!this.$store.getters.getUserProfile;
     },
   },
   watch: {

@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class test(models.Model):
     name = models.CharField(max_length=100)
 
+
 # get user email/password
 class UserProfile(models.Model):
     email = models.EmailField(max_length=254, unique=True)
@@ -19,6 +20,7 @@ class UserProfile(models.Model):
     bank_balance = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
 
     user = models.OneToOneField(User, blank=True, null=True, on_delete=models.CASCADE)
+
 
 # Expense Form
 class Expense(models.Model):
@@ -34,6 +36,7 @@ class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField()
     date_time_created = models.DateTimeField(auto_now_add=True)
+
 
 class Income(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -56,13 +59,3 @@ class Budget(models.Model):
     budget_amount = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateField()
     end_date = models.DateField()
-
-
-
-
-# bill
-# profile
-# bank balance
-# categories
-
-# model as catergory and create multiple objects
